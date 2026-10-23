@@ -1,0 +1,55 @@
+services:
+  # -------------------------------------------------------------
+  # Web Application Service (Flask + Gunicorn)
+  # -------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cloudtask_web
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-development}
+      - SECRET_KEY=${SECRET_KEY:-dev-insecure-secret-key-32-chars-min}
+      - APP_VERSION=${APP_VERSION:-v1.0.0}
+      - GROUP_INVITE_CODE=${GROUP_INVITE_CODE:-CLOUDTASK-GROUP-8}
+      # In local mode, connects to the container 'db'.
+      # In Neon mode, override DATABASE_URL in your .env with your Neon connection string.
+      - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://task_user:task_password@db:5432/task_db}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # -------------------------------------------------------------
+  # Local PostgreSQL Database Service
+  # (Not used if DATABASE_URL points to Neon PostgreSQL)
+  # -------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: cloudtask_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-task_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-task_password}
+      POSTGRES_DB: ${POSTGRES_DB:-task_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-task_user} -d ${POSTGRES_DB:-task_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    name: cloudtask_postgres_data

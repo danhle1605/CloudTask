@@ -1,0 +1,111 @@
+<!-- app/templates/workspace.html -->
+{% extends "base.html" %}
+
+{% block title %}Không gian làm việc - CloudTask{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card card-saas p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+        <div>
+          <h1 class="h4 fw-bold mb-1" style="color: var(--navy-dark);"><i class="bi bi-people-fill text-primary me-2"></i>Không gian làm việc chung</h1>
+          <p class="text-muted small mb-0">Cả 3 thành viên sử dụng tài khoản riêng nhưng truy cập và cập nhật cùng một danh sách công việc chung.</p>
+        </div>
+        <span class="badge bg-primary px-3 py-2 rounded-pill">{{ members|length }} Thành viên</span>
+      </div>
+
+      {% if workspace %}
+        <div class="row g-3 mb-4">
+          <div class="col-sm-6">
+            <div class="p-3 bg-light rounded-3 border">
+              <div class="text-muted small">Tên Workspace</div>
+              <div class="fw-bold fs-5 text-dark">{{ workspace.name }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-3 bg-light rounded-3 border">
+              <div class="text-muted small">Mã mời tham gia nhóm</div>
+              <div class="fw-bold fs-5 text-primary"><code>CLOUDTASK-GROUP-8</code></div>
+            </div>
+          </div>
+        </div>
+
+        <h2 class="h6 fw-bold mb-3 text-uppercase text-muted">Danh sách thành viên hiện tại</h2>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">Họ và tên</th>
+                <th scope="col">Email</th>
+                <th scope="col">Vai trò</th>
+                <th scope="col">Ngày tham gia</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in members %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="bi bi-person-circle fs-5 text-secondary"></i>
+                      <span class="fw-semibold">{{ m.user.full_name }}</span>
+                      {% if m.user_id == current_user.id %}
+                        <span class="badge bg-info-subtle text-info-emphasis px-2">Bạn</span>
+                      {% endif %}
+                    </div>
+                  </td>
+                  <td class="text-muted">{{ m.user.email }}</td>
+                  <td>
+                    {% if m.role == 'admin' %}
+                      <span class="badge bg-danger-subtle text-danger px-2"><i class="bi bi-shield-lock-fill me-1"></i>Quản trị viên</span>
+                    {% else %}
+                      <span class="badge bg-secondary-subtle text-secondary px-2">Thành viên</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-muted small">{{ m.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-exclamation-diamond text-warning display-4 mb-3 d-block"></i>
+          <h2 class="h5 fw-bold mb-2">Bạn chưa tham gia không gian làm việc nào</h2>
+          <p class="text-muted mb-4">Vui lòng nhập mã mời của nhóm ở cột bên phải để xem dữ liệu công việc chung.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <!-- Join Workspace Box -->
+    <div class="card card-saas p-4 mb-4">
+      <h2 class="h5 fw-bold mb-2" style="color: var(--navy-dark);"><i class="bi bi-person-plus me-2 text-primary"></i>Tham gia Workspace</h2>
+      <p class="text-muted small mb-3">Nhập mã mời nhóm (ví dụ: <code>CLOUDTASK-GROUP-8</code>) để liên kết tài khoản của bạn vào nhóm chung.</p>
+
+      <form action="{{ url_for('main.join_workspace') }}" method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+          <label class="form-label small fw-semibold" for="ws_invite_code">Mã mời</label>
+          {{ form.invite_code(class="form-control", placeholder="CLOUDTASK-GROUP-8", id="ws_invite_code") }}
+        </div>
+        <button type="submit" class="btn btn-navy w-100 py-2">Xác nhận tham gia</button>
+      </form>
+    </div>
+
+    <!-- Group Architecture Note -->
+    <div class="card card-saas p-4 bg-light border-0">
+      <h3 class="h6 fw-bold mb-2 text-primary"><i class="bi bi-info-circle-fill me-2"></i>Nguyên lý Workspace</h3>
+      <p class="small text-muted mb-2">
+        Trong đề tài số 8, mô hình workspace chung này đảm bảo:
+      </p>
+      <ul class="small text-muted ps-3 mb-0">
+        <li>Cả 3 thành viên đều có tài khoản và danh tính riêng.</li>
+        <li>Tất cả công việc được lưu trên Neon PostgreSQL chung.</li>
+        <li>Bất kỳ thành viên nào tạo, sửa, xóa việc thì các thành viên khác đều thấy dữ liệu đồng bộ tức thì khi tải lại trang.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

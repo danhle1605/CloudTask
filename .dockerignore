@@ -1,0 +1,21 @@
+# .dockerignore
+.git
+.github
+.gitignore
+.env
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+.pytest_cache/
+.coverage
+htmlcov/
+tests/
+ruff.toml
+pytest.ini
+README.md
+k6/
