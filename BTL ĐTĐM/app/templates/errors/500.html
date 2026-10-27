@@ -1,0 +1,17 @@
+<!-- app/templates/errors/500.html -->
+{% extends "base.html" %}
+
+{% block title %}500 — Lỗi máy chủ nội bộ{% endblock %}
+
+{% block content %}
+<div class="workspace-card p-5 text-center mt-5" style="max-width: 520px; margin: 0 auto;">
+  <div class="display-3 fw-bold text-accent mb-2">500</div>
+  <h2 class="h4 fw-semibold mb-2 text-dark">Lỗi máy chủ nội bộ</h2>
+  <p class="text-muted small mb-4">Hệ thống đang gặp sự cố gián đoạn tạm thời. Vui lòng thử lại sau ít phút.</p>
+  <div>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary px-4 py-2">
+      <i class="bi bi-house me-1"></i> Về Trang chủ
+    </a>
+  </div>
+</div>
+{% endblock %}
