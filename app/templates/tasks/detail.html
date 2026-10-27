@@ -1,96 +1,99 @@
 <!-- app/templates/tasks/detail.html -->
 {% extends "base.html" %}
 
-{% block title %}{{ task.title }} - Chi tiết công việc{% endblock %}
+{% block title %}{{ task.title }} — Chi tiết công việc{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="card card-saas p-4 p-md-5 mb-4">
-      <!-- Header -->
+  <div class="col-lg-8 col-xl-7">
+    <div class="workspace-card p-4 p-md-5 mb-4">
+      <!-- Header Actions -->
       <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-3 mb-4 gap-2">
-        <a href="{{ url_for('main.task_list') }}" class="btn btn-outline-secondary btn-sm">
-          <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+        <a href="{{ url_for('main.task_list') }}" class="btn btn-outline-secondary btn-sm px-3">
+          <i class="bi bi-arrow-left me-1"></i> Danh sách công việc
         </a>
         <div class="d-flex gap-2">
-          <a href="{{ url_for('main.task_edit', id=task.id) }}" class="btn btn-primary btn-sm px-3" style="background-color: var(--blue-accent); border: none;">
+          <a href="{{ url_for('main.task_edit', id=task.id) }}" class="btn btn-primary btn-sm px-3">
             <i class="bi bi-pencil me-1"></i> Chỉnh sửa
           </a>
-          <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
-            <i class="bi bi-trash me-1"></i> Xóa
+          <button type="button" class="btn btn-outline-danger btn-sm px-3" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            <i class="bi bi-trash me-1"></i> Xóa việc
           </button>
         </div>
       </div>
 
       <!-- Task Title & Badges -->
-      <div class="mb-4">
+      <div class="task-detail-header mb-4">
         <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-          <span class="badge-status {{ task.status }}">
-            {% if task.status == 'pending' %}<i class="bi bi-hourglass-split"></i>{% endif %}
-            {% if task.status == 'in_progress' %}<i class="bi bi-play-circle-fill"></i>{% endif %}
-            {% if task.status == 'completed' %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+          <span class="status-indicator status-{{ task.status }}">
+            <span class="status-dot"></span>
             {{ task.status_label }}
           </span>
-          <span class="badge-priority {{ task.priority }}">{{ task.priority_label }}</span>
+          <span class="priority-tag priority-{{ task.priority }}">
+            Ưu tiên: {{ task.priority_label }}
+          </span>
         </div>
-        <h1 class="h3 fw-bold mb-0" style="color: var(--navy-dark);">{{ task.title }}</h1>
+        <h1 class="page-title h2 mb-2">{{ task.title }}</h1>
       </div>
 
-      <!-- Description -->
-      <div class="mb-4">
-        <h2 class="h6 fw-bold text-muted text-uppercase mb-2">Mô tả công việc</h2>
-        <div class="p-3 bg-light rounded-3 border text-break" style="white-space: pre-wrap; min-height: 100px;">
+      <!-- Description Section -->
+      <div class="task-description-box mb-4">
+        <div class="meta-label text-uppercase mb-2">Nội dung chi tiết</div>
+        <div class="task-body-content text-break">
           {{ task.description if task.description else 'Không có mô tả chi tiết cho công việc này.' }}
         </div>
       </div>
 
-      <!-- Metadata Grid -->
+      <!-- Metadata Dossier Grid -->
       <div class="row g-3 border-top pt-4 text-muted small">
         <div class="col-sm-6 col-md-3">
-          <div class="text-uppercase fw-semibold" style="font-size: 0.75rem;">Người tạo</div>
-          <div class="text-dark fw-medium mt-1">
-            <i class="bi bi-person me-1"></i> {{ task.creator.full_name if task.creator else 'Hệ thống' }}
+          <div class="meta-label text-uppercase mb-1">Người tạo</div>
+          <div class="text-dark fw-medium">
+            <i class="bi bi-person me-1 text-secondary"></i> {{ task.creator.full_name if task.creator else 'Hệ thống' }}
           </div>
         </div>
 
         <div class="col-sm-6 col-md-3">
-          <div class="text-uppercase fw-semibold" style="font-size: 0.75rem;">Hạn hoàn thành</div>
-          <div class="text-dark fw-medium mt-1">
-            <i class="bi bi-calendar-event me-1"></i> {{ task.due_date.strftime('%d/%m/%Y') if task.due_date else 'Không có' }}
+          <div class="meta-label text-uppercase mb-1">Hạn hoàn thành</div>
+          <div class="text-dark fw-medium">
+            <i class="bi bi-calendar3 me-1 text-secondary"></i> {{ task.due_date.strftime('%d/%m/%Y') if task.due_date else 'Không có' }}
           </div>
         </div>
 
         <div class="col-sm-6 col-md-3">
-          <div class="text-uppercase fw-semibold" style="font-size: 0.75rem;">Ngày tạo</div>
-          <div class="text-dark fw-medium mt-1">
-            <i class="bi bi-clock me-1"></i> {{ task.created_at.strftime('%d/%m/%Y %H:%M') }}
+          <div class="meta-label text-uppercase mb-1">Ngày khởi tạo</div>
+          <div class="text-dark fw-medium">
+            <i class="bi bi-clock me-1 text-secondary"></i> {{ task.created_at.strftime('%d/%m/%Y %H:%M') }}
           </div>
         </div>
 
         <div class="col-sm-6 col-md-3">
-          <div class="text-uppercase fw-semibold" style="font-size: 0.75rem;">Cập nhật lần cuối</div>
-          <div class="text-dark fw-medium mt-1">
-            <i class="bi bi-arrow-repeat me-1"></i> {{ task.updated_at.strftime('%d/%m/%Y %H:%M') }}
+          <div class="meta-label text-uppercase mb-1">Cập nhật lần cuối</div>
+          <div class="text-dark fw-medium">
+            <i class="bi bi-arrow-repeat me-1 text-secondary"></i> {{ task.updated_at.strftime('%d/%m/%Y %H:%M') }}
           </div>
         </div>
       </div>
 
       <!-- Delete Confirmation Modal -->
-      <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+      <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="detailDeleteModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h3 class="modal-title h5 fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Xác nhận xóa công việc</h3>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <div class="modal-content modal-editorial">
+            <div class="modal-header border-bottom">
+              <div class="d-flex align-items-center gap-2 text-danger">
+                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                <h3 class="modal-title h5 mb-0 fw-semibold" id="detailDeleteModalLabel">Xác nhận xóa công việc</h3>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
-            <div class="modal-body">
-              Bạn có chắc chắn muốn xóa công việc <strong>"{{ task.title }}"</strong> khỏi workspace chung không? Dữ liệu này sẽ bị xóa khỏi PostgreSQL.
+            <div class="modal-body py-4">
+              Bạn có chắc chắn muốn xóa công việc <strong>"{{ task.title }}"</strong> khỏi hệ thống chung không? Dữ liệu này sẽ bị xóa khỏi PostgreSQL và không thể khôi phục.
             </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy bỏ</button>
+            <div class="modal-footer border-top">
+              <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal">Hủy bỏ</button>
               <form action="{{ url_for('main.task_delete', id=task.id) }}" method="POST">
                 {{ delete_form.hidden_tag() }}
-                <button type="submit" class="btn btn-danger btn-sm">Xác nhận xóa</button>
+                <button type="submit" class="btn btn-danger btn-sm px-3">Xác nhận xóa</button>
               </form>
             </div>
           </div>

@@ -1,131 +1,175 @@
 <!-- app/templates/tasks/list.html -->
 {% extends "base.html" %}
 
-{% block title %}Danh sách công việc - CloudTask{% endblock %}
+{% block title %}Danh sách công việc — CloudTask{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+<!-- Editorial Page Header -->
+<div class="page-header d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
   <div>
-    <h1 class="h3 fw-bold mb-1" style="color: var(--navy-dark);">Danh sách công việc</h1>
-    <p class="text-muted small mb-0">Không gian làm việc chung: <strong>{{ current_workspace.name }}</strong></p>
+    <div class="eyebrow-tag mb-1">
+      <i class="bi bi-grid-1x2 me-1"></i> Workspace &bull; {{ current_workspace.name }}
+    </div>
+    <h1 class="page-title mb-1">Danh sách công việc</h1>
+    <p class="page-subtitle mb-0">Theo dõi, phân công và kiểm soát tiến độ thực hiện các nhiệm vụ của nhóm.</p>
   </div>
-  <a href="{{ url_for('main.task_create') }}" class="btn btn-navy px-3 shadow-sm">
-    <i class="bi bi-plus-lg me-1"></i> Tạo việc mới
-  </a>
+  <div class="d-flex align-items-center gap-2">
+    <a href="{{ url_for('main.task_create') }}" class="btn btn-primary px-3 py-2">
+      <i class="bi bi-plus-lg me-1"></i> Tạo việc mới
+    </a>
+  </div>
 </div>
 
-<!-- Search & Filter Bar -->
-<div class="card card-saas p-3 mb-4">
+<!-- Search & Filter Toolbar -->
+<div class="filter-toolbar mb-4">
   <form method="GET" action="{{ url_for('main.task_list') }}" class="row g-2 align-items-center">
-    <div class="col-md-5">
-      <div class="input-group">
-        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
-        <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="Tìm theo tiêu đề hoặc nội dung..." value="{{ search_query }}">
+    <div class="col-lg-5 col-md-12">
+      <div class="input-group search-input-group">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" name="q" class="form-control" placeholder="Tìm kiếm theo tiêu đề hoặc nội dung..." value="{{ search_query }}">
       </div>
     </div>
-    <div class="col-sm-6 col-md-3">
-      <select name="status" class="form-select">
-        <option value="">-- Tất cả trạng thái --</option>
+    <div class="col-sm-6 col-lg-3">
+      <select name="status" class="form-select select-filter" aria-label="Lọc theo trạng thái">
+        <option value="">Tất cả trạng thái</option>
         <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Chờ xử lý</option>
         <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>Đang thực hiện</option>
         <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Đã hoàn thành</option>
       </select>
     </div>
-    <div class="col-sm-6 col-md-2">
-      <select name="priority" class="form-select">
-        <option value="">-- Mức ưu tiên --</option>
+    <div class="col-sm-6 col-lg-2">
+      <select name="priority" class="form-select select-filter" aria-label="Lọc theo mức ưu tiên">
+        <option value="">Tất cả mức ưu tiên</option>
         <option value="low" {% if priority_filter == 'low' %}selected{% endif %}>Thấp</option>
         <option value="medium" {% if priority_filter == 'medium' %}selected{% endif %}>Trung bình</option>
         <option value="high" {% if priority_filter == 'high' %}selected{% endif %}>Cao</option>
       </select>
     </div>
-    <div class="col-md-2 d-flex gap-2">
-      <button type="submit" class="btn btn-primary w-100" style="background-color: var(--blue-accent); border: none;">Lọc</button>
+    <div class="col-lg-2 col-md-12 d-flex gap-2">
+      <button type="submit" class="btn btn-filter flex-grow-1">
+        <i class="bi bi-funnel me-1"></i> Áp dụng
+      </button>
       {% if search_query or status_filter or priority_filter %}
-        <a href="{{ url_for('main.task_list') }}" class="btn btn-outline-secondary" title="Xóa bộ lọc"><i class="bi bi-x-lg"></i></a>
+        <a href="{{ url_for('main.task_list') }}" class="btn btn-outline-secondary btn-icon" title="Xóa bộ lọc" aria-label="Xóa bộ lọc">
+          <i class="bi bi-x-lg"></i>
+        </a>
       {% endif %}
     </div>
   </form>
 </div>
 
-<!-- Task Table -->
-<div class="card card-saas p-4 mb-4">
+<!-- Task Table Card -->
+<div class="workspace-card mb-4">
+  <div class="card-meta-bar d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+    <div class="d-flex align-items-center gap-2">
+      <span class="meta-label text-uppercase">Danh mục nhiệm vụ</span>
+      <span class="badge badge-count">{{ tasks|length }} công việc</span>
+    </div>
+    {% if search_query or status_filter or priority_filter %}
+      <div class="active-filter-indicator small">
+        <span class="text-muted">Đang lọc theo:</span>
+        {% if search_query %}<span class="filter-chip">Từ khóa: "{{ search_query }}"</span>{% endif %}
+        {% if status_filter %}<span class="filter-chip">Trạng thái: {{ status_filter }}</span>{% endif %}
+        {% if priority_filter %}<span class="filter-chip">Ưu tiên: {{ priority_filter }}</span>{% endif %}
+      </div>
+    {% endif %}
+  </div>
+
   {% if tasks %}
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
+      <table class="table table-editorial align-middle mb-0">
+        <thead>
           <tr>
-            <th scope="col" style="min-width: 250px;">Tiêu đề</th>
-            <th scope="col">Trạng thái</th>
-            <th scope="col">Mức ưu tiên</th>
-            <th scope="col">Người tạo</th>
-            <th scope="col">Hạn chót</th>
-            <th scope="col">Cập nhật</th>
-            <th scope="col" class="text-end">Hành động</th>
+            <th scope="col" style="min-width: 280px;">Tiêu đề công việc</th>
+            <th scope="col" style="width: 140px;">Trạng thái</th>
+            <th scope="col" style="width: 120px;">Ưu tiên</th>
+            <th scope="col" style="width: 160px;">Người tạo</th>
+            <th scope="col" style="width: 120px;">Hạn chót</th>
+            <th scope="col" style="width: 140px;">Cập nhật</th>
+            <th scope="col" class="text-end" style="width: 110px;">Thao tác</th>
           </tr>
         </thead>
         <tbody>
           {% for task in tasks %}
-            <tr>
-              <td>
-                <a href="{{ url_for('main.task_detail', id=task.id) }}" class="fw-semibold text-decoration-none text-dark">
+            <tr class="task-row">
+              <td class="task-title-cell">
+                <a href="{{ url_for('main.task_detail', id=task.id) }}" class="task-title-link">
                   {{ task.title }}
                 </a>
                 {% if task.description %}
-                  <div class="text-muted small text-truncate" style="max-width: 320px;">
+                  <div class="task-desc-preview text-truncate">
                     {{ task.description }}
                   </div>
                 {% endif %}
               </td>
               <td>
-                <span class="badge-status {{ task.status }}">
-                  {% if task.status == 'pending' %}<i class="bi bi-hourglass-split"></i>{% endif %}
-                  {% if task.status == 'in_progress' %}<i class="bi bi-play-circle-fill"></i>{% endif %}
-                  {% if task.status == 'completed' %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+                <span class="status-indicator status-{{ task.status }}">
+                  <span class="status-dot"></span>
                   {{ task.status_label }}
                 </span>
               </td>
               <td>
-                <span class="badge-priority {{ task.priority }}">{{ task.priority_label }}</span>
+                <span class="priority-tag priority-{{ task.priority }}">
+                  {{ task.priority_label }}
+                </span>
               </td>
               <td class="text-muted small">
-                {{ task.creator.full_name if task.creator else 'Hệ thống' }}
+                <div class="d-flex align-items-center gap-1">
+                  <i class="bi bi-person text-secondary"></i>
+                  <span>{{ task.creator.full_name if task.creator else 'Hệ thống' }}</span>
+                </div>
               </td>
-              <td class="text-muted small">
-                {{ task.due_date.strftime('%d/%m/%Y') if task.due_date else '—' }}
+              <td class="small">
+                {% if task.due_date %}
+                  <span class="due-date-badge">
+                    <i class="bi bi-calendar3 me-1"></i>{{ task.due_date.strftime('%d/%m/%Y') }}
+                  </span>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
               </td>
-              <td class="text-muted small">
+              <td class="text-muted small due-date-badge">
                 {{ task.updated_at.strftime('%d/%m/%Y %H:%M') }}
               </td>
               <td class="text-end">
-                <div class="btn-group btn-group-sm">
-                  <a href="{{ url_for('main.task_detail', id=task.id) }}" class="btn btn-outline-secondary" title="Xem chi tiết">
+                <div class="btn-actions-group">
+                  <a href="{{ url_for('main.task_detail', id=task.id) }}" class="btn-action" title="Xem chi tiết" aria-label="Xem chi tiết">
                     <i class="bi bi-eye"></i>
                   </a>
-                  <a href="{{ url_for('main.task_edit', id=task.id) }}" class="btn btn-outline-primary" title="Sửa công việc">
+                  <a href="{{ url_for('main.task_edit', id=task.id) }}" class="btn-action" title="Sửa công việc" aria-label="Sửa công việc">
                     <i class="bi bi-pencil"></i>
                   </a>
-                  <button type="button" class="btn btn-outline-danger" title="Xóa" data-bs-toggle="modal" data-bs-target="#deleteModal{{ task.id }}">
+                  <button type="button" class="btn-action btn-action-danger" title="Xóa" aria-label="Xóa" data-bs-toggle="modal" data-bs-target="#deleteModal{{ task.id }}">
                     <i class="bi bi-trash"></i>
                   </button>
                 </div>
 
                 <!-- Delete Confirmation Modal -->
-                <div class="modal fade text-start" id="deleteModal{{ task.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal fade text-start" id="deleteModal{{ task.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ task.id }}" aria-hidden="true">
                   <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h2 class="modal-title h5 fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Xác nhận xóa công việc</h2>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-content modal-editorial">
+                      <div class="modal-header border-bottom">
+                        <div class="d-flex align-items-center gap-2 text-danger">
+                          <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                          <h2 class="modal-title h5 mb-0 fw-semibold" id="deleteModalLabel{{ task.id }}">Xác nhận xóa công việc</h2>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                       </div>
-                      <div class="modal-body">
-                        Bạn có chắc chắn muốn xóa công việc <strong>"{{ task.title }}"</strong> khỏi workspace không? Hành động này không thể hoàn tác.
+                      <div class="modal-body py-4">
+                        <p class="mb-2">Bạn có chắc chắn muốn xóa công việc sau khỏi hệ thống không?</p>
+                        <div class="task-delete-preview p-3 my-2 rounded">
+                          <strong class="text-dark">{{ task.title }}</strong>
+                          {% if task.description %}
+                            <div class="text-muted small text-truncate mt-1">{{ task.description }}</div>
+                          {% endif %}
+                        </div>
+                        <p class="small text-danger mb-0">Hành động này sẽ xóa dữ liệu vĩnh viễn khỏi PostgreSQL và không thể hoàn tác.</p>
                       </div>
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy bỏ</button>
+                      <div class="modal-footer border-top">
+                        <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal">Hủy bỏ</button>
                         <form action="{{ url_for('main.task_delete', id=task.id) }}" method="POST">
                           {{ delete_form.hidden_tag() }}
-                          <button type="submit" class="btn btn-danger btn-sm">Xác nhận xóa</button>
+                          <button type="submit" class="btn btn-danger btn-sm px-3">Xác nhận xóa</button>
                         </form>
                       </div>
                     </div>
@@ -140,32 +184,54 @@
 
     <!-- Pagination -->
     {% if pagination.pages > 1 %}
-      <nav class="mt-4">
-        <ul class="pagination justify-content-center mb-0">
-          <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-            <a class="page-link" href="{{ url_for('main.task_list', page=pagination.prev_num, q=search_query, status=status_filter, priority=priority_filter) }}">Trước</a>
-          </li>
-          {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-            {% if p %}
-              <li class="page-item {% if p == pagination.page %}active{% endif %}">
-                <a class="page-link" href="{{ url_for('main.task_list', page=p, q=search_query, status=status_filter, priority=priority_filter) }}">{{ p }}</a>
-              </li>
-            {% else %}
-              <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
-            {% endif %}
-          {% endfor %}
-          <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-            <a class="page-link" href="{{ url_for('main.task_list', page=pagination.next_num, q=search_query, status=status_filter, priority=priority_filter) }}">Sau</a>
-          </li>
-        </ul>
-      </nav>
+      <div class="pagination-wrapper px-4 py-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="pagination-info small text-muted">
+          Trang <strong>{{ pagination.page }}</strong> trên tổng số <strong>{{ pagination.pages }}</strong> trang
+        </div>
+        <nav aria-label="Phân trang công việc">
+          <ul class="pagination pagination-editorial mb-0">
+            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+              <a class="page-link" href="{{ url_for('main.task_list', page=pagination.prev_num, q=search_query, status=status_filter, priority=priority_filter) }}">
+                <i class="bi bi-chevron-left me-1"></i> Trước
+              </a>
+            </li>
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+              {% if p %}
+                <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                  <a class="page-link" href="{{ url_for('main.task_list', page=p, q=search_query, status=status_filter, priority=priority_filter) }}">{{ p }}</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+              {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+              <a class="page-link" href="{{ url_for('main.task_list', page=pagination.next_num, q=search_query, status=status_filter, priority=priority_filter) }}">
+                Sau <i class="bi bi-chevron-right ms-1"></i>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
     {% endif %}
   {% else %}
-    <div class="text-center py-5">
-      <i class="bi bi-search text-muted display-4 mb-3 d-block"></i>
-      <h2 class="h5 text-muted mb-2">Không tìm thấy công việc phù hợp</h2>
-      <p class="text-muted small mb-4">Hãy thử tìm với từ khóa khác hoặc tạo thêm công việc mới.</p>
-      <a href="{{ url_for('main.task_create') }}" class="btn btn-navy btn-sm px-4">Tạo công việc ngay</a>
+    <div class="empty-state-editorial text-center py-5 px-4">
+      <div class="empty-icon-circle mx-auto mb-3">
+        <i class="bi bi-journal-x"></i>
+      </div>
+      <h2 class="h5 fw-semibold text-dark mb-2">Không tìm thấy công việc phù hợp</h2>
+      <p class="text-muted small mx-auto mb-4" style="max-width: 420px;">
+        Không có công việc nào khớp với điều kiện tìm kiếm hiện tại. Bạn có thể xóa bộ lọc để xem toàn bộ danh sách hoặc tạo công việc mới.
+      </p>
+      <div class="d-flex justify-content-center gap-2">
+        {% if search_query or status_filter or priority_filter %}
+          <a href="{{ url_for('main.task_list') }}" class="btn btn-outline-secondary btn-sm px-3">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Xóa bộ lọc
+          </a>
+        {% endif %}
+        <a href="{{ url_for('main.task_create') }}" class="btn btn-primary btn-sm px-3">
+          <i class="bi bi-plus-lg me-1"></i> Tạo công việc mới
+        </a>
+      </div>
     </div>
   {% endif %}
 </div>

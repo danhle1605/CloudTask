@@ -1,98 +1,121 @@
 <!-- app/templates/dashboard.html -->
 {% extends "base.html" %}
 
-{% block title %}Dashboard Thống kê - CloudTask{% endblock %}
+{% block title %}Tổng quan công việc — CloudTask{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+<!-- Editorial Header -->
+<div class="page-header d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
   <div>
-    <h1 class="h3 fw-bold mb-1" style="color: var(--navy-dark);">Tổng quan công việc</h1>
-    <p class="text-muted mb-0">
-      <i class="bi bi-people-fill me-1"></i> Workspace: <strong>{{ current_workspace.name if current_workspace else 'Chưa tham gia nhóm' }}</strong>
-    </p>
+    <div class="eyebrow-tag mb-1">
+      <i class="bi bi-speedometer2 me-1"></i> Báo cáo tổng quan &bull; {{ current_workspace.name if current_workspace else 'Chưa tham gia nhóm' }}
+    </div>
+    <h1 class="page-title mb-1">Tổng quan công việc</h1>
+    <p class="page-subtitle mb-0">Thống kê dữ liệu thời gian thực được đồng bộ trên cơ sở dữ liệu nhóm.</p>
   </div>
-  <div class="d-flex gap-2">
-    <a href="{{ url_for('main.task_create') }}" class="btn btn-primary px-3 shadow-sm" style="background-color: var(--navy-primary); border: none;">
-      <i class="bi bi-plus-circle me-1"></i> Thêm việc mới
+  <div class="d-flex align-items-center gap-2">
+    <a href="{{ url_for('main.task_create') }}" class="btn btn-primary px-3 py-2">
+      <i class="bi bi-plus-lg me-1"></i> Thêm việc mới
     </a>
   </div>
 </div>
 
-<!-- Metrics Statistics Grid -->
+<!-- Metrics Statistics Grid (Editorial Dossier Cards) -->
 <div class="row g-3 mb-4">
   <div class="col-sm-6 col-lg-3">
-    <div class="metric-box total">
-      <div class="metric-title">Tổng công việc</div>
-      <div class="metric-number">{{ total_count }}</div>
+    <div class="metric-card metric-card-total">
+      <div class="metric-eyebrow">Tổng số việc</div>
+      <div class="metric-value">{{ total_count }}</div>
+      <div class="metric-note text-muted small"><i class="bi bi-stack me-1"></i>Trong workspace</div>
     </div>
   </div>
   <div class="col-sm-6 col-lg-3">
-    <div class="metric-box pending">
-      <div class="metric-title">Chờ xử lý</div>
-      <div class="metric-number text-warning">{{ pending_count }}</div>
+    <div class="metric-card metric-card-pending">
+      <div class="metric-eyebrow">
+        <span class="status-dot status-dot-pending me-1"></span>Chờ xử lý
+      </div>
+      <div class="metric-value">{{ pending_count }}</div>
+      <div class="metric-note text-muted small">Cần lên kế hoạch</div>
     </div>
   </div>
   <div class="col-sm-6 col-lg-3">
-    <div class="metric-box in_progress">
-      <div class="metric-title">Đang thực hiện</div>
-      <div class="metric-number text-primary">{{ in_progress_count }}</div>
+    <div class="metric-card metric-card-in-progress">
+      <div class="metric-eyebrow">
+        <span class="status-dot status-dot-in-progress me-1"></span>Đang thực hiện
+      </div>
+      <div class="metric-value">{{ in_progress_count }}</div>
+      <div class="metric-note text-muted small">Đang được xử lý</div>
     </div>
   </div>
   <div class="col-sm-6 col-lg-3">
-    <div class="metric-box completed">
-      <div class="metric-title">Đã hoàn thành</div>
-      <div class="metric-number text-success">{{ completed_count }}</div>
+    <div class="metric-card metric-card-completed">
+      <div class="metric-eyebrow">
+        <span class="status-dot status-dot-completed me-1"></span>Đã hoàn thành
+      </div>
+      <div class="metric-value">{{ completed_count }}</div>
+      <div class="metric-note text-muted small">Mục tiêu đạt được</div>
     </div>
   </div>
 </div>
 
 <!-- Recent Tasks Section -->
-<div class="card card-saas p-4 mb-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="h5 fw-bold mb-0" style="color: var(--navy-dark);"><i class="bi bi-clock-history me-2 text-primary"></i>Công việc gần đây</h2>
-    <a href="{{ url_for('main.task_list') }}" class="text-decoration-none small fw-semibold text-primary">Xem tất cả &rarr;</a>
+<div class="workspace-card mb-4">
+  <div class="card-meta-bar d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+    <div class="d-flex align-items-center gap-2">
+      <span class="meta-label text-uppercase">Nhiệm vụ gần đây</span>
+      <span class="badge badge-count">{{ recent_tasks|length }} gần nhất</span>
+    </div>
+    <a href="{{ url_for('main.task_list') }}" class="view-all-link small fw-medium">
+      Xem toàn bộ danh sách &rarr;
+    </a>
   </div>
 
   {% if recent_tasks %}
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
+      <table class="table table-editorial align-middle mb-0">
+        <thead>
           <tr>
-            <th scope="col" style="min-width: 250px;">Tiêu đề</th>
-            <th scope="col">Trạng thái</th>
-            <th scope="col">Ưu tiên</th>
-            <th scope="col">Người tạo</th>
-            <th scope="col">Hạn chót</th>
-            <th scope="col" class="text-end">Thao tác</th>
+            <th scope="col" style="min-width: 280px;">Tiêu đề</th>
+            <th scope="col" style="width: 140px;">Trạng thái</th>
+            <th scope="col" style="width: 120px;">Ưu tiên</th>
+            <th scope="col" style="width: 160px;">Người tạo</th>
+            <th scope="col" style="width: 130px;">Hạn chót</th>
+            <th scope="col" class="text-end" style="width: 100px;">Thao tác</th>
           </tr>
         </thead>
         <tbody>
           {% for task in recent_tasks %}
-            <tr>
+            <tr class="task-row">
               <td>
-                <a href="{{ url_for('main.task_detail', id=task.id) }}" class="fw-semibold text-decoration-none text-dark">
+                <a href="{{ url_for('main.task_detail', id=task.id) }}" class="task-title-link">
                   {{ task.title }}
                 </a>
               </td>
               <td>
-                <span class="badge-status {{ task.status }}">
-                  {% if task.status == 'pending' %}<i class="bi bi-hourglass-split"></i>{% endif %}
-                  {% if task.status == 'in_progress' %}<i class="bi bi-play-circle-fill"></i>{% endif %}
-                  {% if task.status == 'completed' %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+                <span class="status-indicator status-{{ task.status }}">
+                  <span class="status-dot"></span>
                   {{ task.status_label }}
                 </span>
               </td>
               <td>
-                <span class="badge-priority {{ task.priority }}">{{ task.priority_label }}</span>
+                <span class="priority-tag priority-{{ task.priority }}">
+                  {{ task.priority_label }}
+                </span>
               </td>
               <td class="text-muted small">
                 {{ task.creator.full_name if task.creator else 'Hệ thống' }}
               </td>
-              <td class="text-muted small">
-                {{ task.due_date.strftime('%d/%m/%Y') if task.due_date else '—' }}
+              <td class="small">
+                {% if task.due_date %}
+                  <span class="due-date-badge">
+                    <i class="bi bi-calendar3 me-1"></i>{{ task.due_date.strftime('%d/%m/%Y') }}
+                  </span>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
               </td>
               <td class="text-end">
-                <a href="{{ url_for('main.task_detail', id=task.id) }}" class="btn btn-sm btn-outline-secondary">
+                <a href="{{ url_for('main.task_detail', id=task.id) }}" class="btn btn-outline-secondary btn-sm px-2 py-1" style="font-size: 0.8rem;">
                   Chi tiết
                 </a>
               </td>
@@ -102,10 +125,17 @@
       </table>
     </div>
   {% else %}
-    <div class="text-center py-5">
-      <i class="bi bi-inbox text-muted display-4 mb-3 d-block"></i>
-      <h3 class="h6 text-muted mb-3">Chưa có công việc nào trong workspace chung.</h3>
-      <a href="{{ url_for('main.task_create') }}" class="btn btn-primary btn-sm px-4">Tạo công việc đầu tiên</a>
+    <div class="empty-state-editorial text-center py-5 px-4">
+      <div class="empty-icon-circle mx-auto mb-3">
+        <i class="bi bi-inbox"></i>
+      </div>
+      <h2 class="h5 fw-semibold text-dark mb-2">Chưa có công việc nào trong workspace chung.</h2>
+      <p class="text-muted small mx-auto mb-4" style="max-width: 400px;">
+        Bắt đầu bằng cách tạo công việc đầu tiên để chia sẻ với các thành viên trong nhóm.
+      </p>
+      <a href="{{ url_for('main.task_create') }}" class="btn btn-primary btn-sm px-3">
+        <i class="bi bi-plus-lg me-1"></i> Tạo công việc đầu tiên
+      </a>
     </div>
   {% endif %}
 </div>
