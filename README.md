@@ -239,4 +239,5 @@ k6 run -e TARGET_URL=http://<your-vm-ip>:5000 --out json=k6/results_iaas.json k6
 - [x] Toàn bộ 11 kiểm thử pytest tự động vượt qua (Pass 100%, Coverage > 82%).
 - [x] Workflow GitHub Actions cấu hình sẵn test container và Render deploy hook.
 - [x] Kịch bản đo tải k6 sẵn sàng thu thập số liệu p95 và error rate.
-- [x] Tài liệu bàn giao hạ tầng [HANDOVER_INFRA.md](file:///d:/BTL%20%C4%90T%C4%90M/HANDOVER_INFRA.md) cho Thành viên 1.
+- [x] Tài liệu bàn giao hạ tầng [HANDOVER_INFRA.md](file:///d:/ĐTĐM/HANDOVER_INFRA.md) cho Thành viên 1.
+- [x] Nhật ký thực nghiệm và số liệu k6/rollback [EXPERIMENT_LOG.md](file:///d:/ĐTĐM/EXPERIMENT_LOG.md).
