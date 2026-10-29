@@ -1,5 +1,6 @@
 # tests/test_health.py
 from unittest.mock import patch
+
 from sqlalchemy.exc import OperationalError
 
 
@@ -23,7 +24,8 @@ def test_health_ready_endpoint_success(client):
 
 def test_health_ready_endpoint_db_failure(client):
     """Readiness probe /health/ready should return 503 if database fails."""
-    with patch("app.routes.db.session.execute", side_effect=OperationalError("Connection failed", {}, Exception())):
+    err = OperationalError("Connection failed", {}, Exception())
+    with patch("app.routes.db.session.execute", side_effect=err):
         response = client.get("/health/ready")
         assert response.status_code == 503
         json_data = response.get_json()

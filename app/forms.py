@@ -2,6 +2,7 @@
 from flask_wtf import FlaskForm
 from wtforms import DateField, PasswordField, SelectField, StringField, TextAreaField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
+
 from app.models import PRIORITY_LABELS, STATUS_LABELS
 
 

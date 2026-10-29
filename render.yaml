@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: cloudtask
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: "pip install -r requirements.txt && flask --app run.py db upgrade"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 3 --access-logfile - --error-logfile - wsgi:app"
+    healthCheckPath: /health/ready
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: APP_VERSION
+        value: v1.0.0
+      - key: GROUP_INVITE_CODE
+        value: CLOUDTASK-GROUP-8
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false

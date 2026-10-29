@@ -1,7 +1,9 @@
 # app/__init__.py
 import logging
 import os
+
 from flask import Flask, render_template
+
 from app.config import config
 from app.extensions import csrf, db, migrate
 

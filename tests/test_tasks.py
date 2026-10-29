@@ -1,5 +1,4 @@
 # tests/test_tasks.py
-from datetime import date
 from app.extensions import db
 from app.models import Task, User, Workspace, WorkspaceMember
 
@@ -38,6 +37,52 @@ def test_auth_register_and_workspace_creation(client, app):
         membership = db.session.query(WorkspaceMember).filter_by(user_id=user.id).first()
         assert membership is not None
         assert membership.role == "admin"
+
+
+def test_auth_register_with_wrong_invite_code(client, app, init_sample_data):
+    """Registering with an invalid invite code creates account but does not join the workspace."""
+    response = client.post(
+        "/register",
+        data={
+            "full_name": "Người Nhập Sai Mã",
+            "email": "wrong_invite@example.com",
+            "password": "Password123!",
+            "confirm_password": "Password123!",
+            "invite_code": "WRONG-CODE-999",
+        },
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert "mã mời chưa đúng để vào nhóm chung" in response.get_data(as_text=True)
+
+    with app.app_context():
+        user = db.session.query(User).filter_by(email="wrong_invite@example.com").first()
+        assert user is not None
+        membership = db.session.query(WorkspaceMember).filter_by(user_id=user.id).first()
+        assert membership is None
+
+
+def test_auth_register_with_empty_invite_code(client, app, init_sample_data):
+    """Registering with empty invite code creates account but does not join existing workspace."""
+    response = client.post(
+        "/register",
+        data={
+            "full_name": "Người Không Có Mã",
+            "email": "no_invite@example.com",
+            "password": "Password123!",
+            "confirm_password": "Password123!",
+            "invite_code": "",
+        },
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert "mã mời chưa đúng để vào nhóm chung" in response.get_data(as_text=True)
+
+    with app.app_context():
+        user = db.session.query(User).filter_by(email="no_invite@example.com").first()
+        assert user is not None
+        membership = db.session.query(WorkspaceMember).filter_by(user_id=user.id).first()
+        assert membership is None
 
 
 def test_auth_duplicate_email_rejected(client, init_sample_data):
@@ -188,7 +233,6 @@ def test_external_user_isolated_from_workspace(client, app, init_sample_data):
         outsider.set_password("Password123!")
         db.session.add(outsider)
         db.session.commit()
-        outsider_id = outsider.id
 
     login_user(client, "outsider@example.com", "Password123!")
     task_id = init_sample_data["task_id"]

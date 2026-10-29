@@ -1,0 +1,31 @@
+services:
+  # ----------------------------------------------------------------------------
+  # Web Application Service (Flask + Gunicorn)
+  # Dedicated Compose file for IaaS (Linux VM connecting to Neon Managed DB)
+  # ----------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cloudtask_iaas_web
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - SECRET_KEY=${SECRET_KEY}
+      - APP_VERSION=${APP_VERSION:-v1.0.0}
+      - GROUP_INVITE_CODE=${GROUP_INVITE_CODE:-CLOUDTASK-GROUP-8}
+      - SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE:-false}
+      - DATABASE_URL=${DATABASE_URL}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

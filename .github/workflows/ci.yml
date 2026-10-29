@@ -2,10 +2,9 @@ name: CloudTask CI/CD Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "connect-neon-postgres" ]
   pull_request:
-    branches: [ "main" ]
-
+    branches: ["main", "connect-neon-postgres"]
 jobs:
   test:
     name: Build, Migrate & Test
@@ -35,6 +34,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: "pip"
+          cache-dependency-path: "requirements-dev.txt"
 
       - name: Install Dependencies
         run: |

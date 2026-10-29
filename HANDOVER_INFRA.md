@@ -80,22 +80,23 @@ python seed.py
 1. Cài đặt Docker và Docker Compose trên Linux VM:
    ```bash
    sudo apt-get update && sudo apt-get install -y docker.io docker-compose-v2
+   sudo systemctl enable --now docker
    ```
 2. Clone repository về VM:
    ```bash
-   git clone <REPO_URL> /opt/cloudtask
+   git clone https://github.com/danhle1605/CloudTask.git /opt/cloudtask
    cd /opt/cloudtask
+   git checkout connect-neon-postgres
    ```
-3. Tạo file `.env` trên VM từ `.env.example`, điền `DATABASE_URL` của Neon.
-4. Khởi chạy ứng dụng bằng Docker Compose:
+3. Tạo file `.env` trên VM từ `.env.example`, điền `DATABASE_URL` của Neon và `SECRET_KEY`.
+4. Khởi chạy ứng dụng bằng Docker Compose dành riêng cho IaaS (không khởi chạy postgres local):
    ```bash
-   docker compose up -d --build web
+   docker compose -f docker-compose.iaas.yml up -d --build
    ```
-   *(Chỉ cần chạy service `web`, không cần chạy service `db` local vì cả 2 môi trường cùng dùng chung Neon).*
 5. Kiểm tra log và trạng thái container:
    ```bash
-   docker compose ps
-   docker compose logs -f web
+   docker compose -f docker-compose.iaas.yml ps
+   docker compose -f docker-compose.iaas.yml logs -f web
    ```
 
 ---

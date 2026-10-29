@@ -1,6 +1,9 @@
 # seed.py
 import logging
+import os
+import sys
 from datetime import date, timedelta
+
 from app import create_app
 from app.extensions import db
 from app.models import Task, User, Workspace, WorkspaceMember
@@ -8,7 +11,13 @@ from app.models import Task, User, Workspace, WorkspaceMember
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("seed")
 
-app = create_app("development")
+# Safety guard: Never seed demo data in production environment
+current_env = os.getenv("FLASK_ENV", "development")
+if current_env == "production":
+    logger.warning("Seed script execution aborted: Production environment detected.")
+    sys.exit(0)
+
+app = create_app(current_env)
 
 with app.app_context():
     logger.info("Checking database data...")
@@ -21,72 +30,105 @@ with app.app_context():
         db.session.flush()
         logger.info("Created shared workspace: CloudTask Team 8")
 
-    # Team member definitions (3 members)
-    members_data = [
-        {"name": "Thành Viên 1 (Infra Lead)", "email": "member1@cloudtask.local", "role": "admin"},
-        {"name": "Thành Viên 2 (App & CI/CD)", "email": "member2@cloudtask.local", "role": "member"},
-        {"name": "Thành Viên 3 (QA & Benchmarks)", "email": "member3@cloudtask.local", "role": "member"},
+    # Accounts definition (Admin + Members/Employees)
+    accounts_data = [
+        {"name": "Quản Trị Viên", "email": "admin@cloudtask.com", "role": "admin"},
+        {
+            "name": "Nguyễn Văn A (Nhân viên Dev)",
+            "email": "nhanvien1@cloudtask.com",
+            "role": "member",
+        },
+        {
+            "name": "Trần Thị B (Nhân viên QA)",
+            "email": "nhanvien2@cloudtask.com",
+            "role": "member",
+        },
     ]
 
     users = []
-    for m in members_data:
-        user = db.session.query(User).filter_by(email=m["email"]).first()
+    for acc in accounts_data:
+        user = db.session.query(User).filter_by(email=acc["email"]).first()
         if not user:
-            user = User(full_name=m["name"], email=m["email"])
-            user.set_password("CloudTask2026!")
+            user = User(full_name=acc["name"], email=acc["email"])
+            user.set_password("CloudTask2026!Secure")
             db.session.add(user)
             db.session.flush()
 
-            # Add to workspace
-            membership = WorkspaceMember(workspace_id=ws.id, user_id=user.id, role=m["role"])
+            membership = WorkspaceMember(workspace_id=ws.id, user_id=user.id, role=acc["role"])
             db.session.add(membership)
-            logger.info(f"Created user & membership: {m['email']}")
+            logger.info(f"Created account & membership: {acc['email']} ({acc['role']})")
+        else:
+            # Check membership if user exists
+            membership = (
+                db.session.query(WorkspaceMember)
+                .filter_by(workspace_id=ws.id, user_id=user.id)
+                .first()
+            )
+            if not membership:
+                membership = WorkspaceMember(
+                    workspace_id=ws.id, user_id=user.id, role=acc["role"]
+                )
+                db.session.add(membership)
+                logger.info(f"Added existing user {acc['email']} to workspace as {acc['role']}")
         users.append(user)
 
     db.session.commit()
+    user = users[0]  # default user for task creation
 
     # Initial demo tasks
     if db.session.query(Task).count() == 0:
         tasks_data = [
             {
                 "title": "Tạo database trên Neon PostgreSQL và bàn giao",
-                "description": "Tạo project cloudtask-db trên Neon, region Singapore, trích xuất DATABASE_URL an toàn.",
+                "description": (
+                    "Tạo project cloudtask-db trên Neon, region Singapore, "
+                    "trích xuất DATABASE_URL an toàn."
+                ),
                 "status": "completed",
                 "priority": "high",
                 "due_date": date.today() + timedelta(days=2),
-                "created_by": users[1].id,
+                "created_by": user.id,
             },
             {
                 "title": "Thiết lập Pipeline CI/CD trên GitHub Actions",
-                "description": "Tự động hóa pytest, linting và database migration khi có PR hoặc push vào main.",
+                "description": (
+                    "Tự động hóa pytest, linting và database migration khi có PR hoặc push."
+                ),
                 "status": "in_progress",
                 "priority": "high",
                 "due_date": date.today() + timedelta(days=4),
-                "created_by": users[1].id,
+                "created_by": user.id,
             },
             {
                 "title": "Triển khai ứng dụng PaaS trên Render",
-                "description": "Kết nối Neon PostgreSQL, cấu hình /health/ready và kiểm tra độ ổn định.",
+                "description": (
+                    "Kết nối Neon PostgreSQL, cấu hình /health/ready và kiểm tra độ ổn định."
+                ),
                 "status": "in_progress",
                 "priority": "high",
                 "due_date": date.today() + timedelta(days=5),
-                "created_by": users[0].id,
+                "created_by": user.id,
             },
             {
                 "title": "Triển khai ứng dụng IaaS trên Linux VM",
-                "description": "Chạy Docker Compose trên Linux VM và kiểm tra khả năng phục hồi khi container restart.",
+                "description": (
+                    "Chạy Docker Compose trên Linux VM và kiểm tra khả năng "
+                    "phục hồi khi container restart."
+                ),
                 "status": "pending",
                 "priority": "medium",
                 "due_date": date.today() + timedelta(days=7),
-                "created_by": users[0].id,
+                "created_by": user.id,
             },
             {
                 "title": "Thực hiện kiểm thử tải bằng k6 và so sánh hiệu năng",
-                "description": "Đo p95 latency, error rate và ghi nhận số liệu so sánh giữa PaaS và IaaS.",
+                "description": (
+                    "Đo p95 latency, error rate và ghi nhận số liệu so sánh giữa PaaS và IaaS."
+                ),
                 "status": "pending",
                 "priority": "medium",
                 "due_date": date.today() + timedelta(days=10),
-                "created_by": users[2].id,
+                "created_by": user.id,
             },
         ]
 

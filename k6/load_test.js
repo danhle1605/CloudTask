@@ -2,27 +2,31 @@
 // K6 Performance & Operational Benchmark Script for Topic 8 (PaaS vs IaaS)
 //
 // Usage:
-//   k6 run -e TARGET_URL=https://cloudtask.onrender.com --out json=k6/results_paas.json k6/load_test.js
-//   k6 run -e TARGET_URL=http://<VM_IP>:5000 --out json=k6/results_iaas.json k6/load_test.js
+//   k6 run -e TARGET_URL=https://cloudtask.onrender.com -e VUS=20 -e DURATION=1m --out json=k6/results_paas.json k6/load_test.js
+//   k6 run -e TARGET_URL=http://<VM_IP>:5000 -e VUS=20 -e DURATION=1m --out json=k6/results_iaas.json k6/load_test.js
 
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Trend, Rate, Counter } from 'k6/metrics';
 
-// Custom metrics to collect required thesis indicators
+// Custom metrics to collect required indicators
 export const p95ResponseTrend = new Trend('custom_req_duration');
 export const errorRate = new Rate('custom_error_rate');
 export const healthCheckFails = new Counter('health_check_failures');
 
+const TARGET_VUS = parseInt(__ENV.VUS || '20', 10);
+const TARGET_DURATION = __ENV.DURATION || '1m';
+
 export const options = {
   stages: [
-    { duration: '30s', target: 10 },  // Ramp-up to 10 virtual users
-    { duration: '1m', target: 20 },   // Sustained load at 20 virtual users
-    { duration: '30s', target: 0 },   // Ramp-down
+    { duration: '30s', target: Math.floor(TARGET_VUS / 2) }, // Ramp-up
+    { duration: TARGET_DURATION, target: TARGET_VUS },        // Sustained load
+    { duration: '30s', target: 0 },                           // Ramp-down
   ],
   thresholds: {
     http_req_duration: ['p(95)<1500'], // 95% of requests must complete below 1.5s
-    'custom_error_rate': ['rate<0.05'], // Error rate under 5%
+    'custom_error_rate': ['rate<0.05'], // Overall error rate under 5%
+    'custom_req_duration': ['p(95)<1500'],
   },
 };
 
@@ -44,9 +48,16 @@ export default function () {
 
   // 2. Health check liveness probe
   const liveRes = http.get(`${BASE_URL}/health/live`);
-  check(liveRes, {
+  const liveOk = check(liveRes, {
     'health_live status is 200': (r) => r.status === 200,
   });
+  if (!liveOk) {
+    healthCheckFails.add(1);
+    errorRate.add(1);
+  } else {
+    errorRate.add(0);
+  }
+  p95ResponseTrend.add(liveRes.timings.duration);
 
   // 3. Public landing / Login page
   const loginRes = http.get(`${BASE_URL}/login`);

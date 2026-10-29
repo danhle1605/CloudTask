@@ -22,12 +22,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application source code
 COPY . .
 
-# Expose web server port
+# Expose web server port (default 5000, Render will assign $PORT dynamically)
+ENV PORT=5000
 EXPOSE 5000
 
 # Health check using the readiness probe
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:5000/health/ready || exit 1
+  CMD curl -f http://localhost:${PORT:-5000}/health/ready || exit 1
 
-# Run with Gunicorn (Twelve-Factor stdout logging)
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "--access-logfile", "-", "--error-logfile", "-", "wsgi:app"]
+# Run with Gunicorn bound to $PORT (Twelve-Factor stdout logging)
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 3 --access-logfile - --error-logfile - wsgi:app"]

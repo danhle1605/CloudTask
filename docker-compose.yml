@@ -15,12 +15,13 @@ services:
       - SECRET_KEY=${SECRET_KEY:-dev-insecure-secret-key-32-chars-min}
       - APP_VERSION=${APP_VERSION:-v1.0.0}
       - GROUP_INVITE_CODE=${GROUP_INVITE_CODE:-CLOUDTASK-GROUP-8}
-      # In local mode, connects to the container 'db'.
-      # In Neon mode, override DATABASE_URL in your .env with your Neon connection string.
-      - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://task_user:task_password@db:5432/task_db}
+      # In local mode, connects to the container 'db' (cloudtask_db).
+      # If DATABASE_URL is set to Neon in your .env, that value will take precedence.
+      - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://${POSTGRES_USER:-task_user}:${POSTGRES_PASSWORD:-task_password}@db:5432/${POSTGRES_DB:-task_db}}
     depends_on:
       db:
         condition: service_healthy
+
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health/ready"]
       interval: 10s

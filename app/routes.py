@@ -1,6 +1,7 @@
 # app/routes.py
 import functools
 import logging
+
 from flask import (
     Blueprint,
     abort,
@@ -15,6 +16,7 @@ from flask import (
     url_for,
 )
 from sqlalchemy import func, or_, select, text
+
 from app.extensions import db
 from app.forms import DeleteTaskForm, JoinWorkspaceForm, LoginForm, RegisterForm, TaskForm
 from app.models import Task, User, Workspace, WorkspaceMember
@@ -113,7 +115,8 @@ def register():
 
     form = RegisterForm()
     if form.validate_on_submit():
-        existing_user = db.session.query(User).filter_by(email=form.email.data.strip().lower()).first()
+        clean_email = form.email.data.strip().lower()
+        existing_user = db.session.query(User).filter_by(email=clean_email).first()
         if existing_user:
             flash("Email này đã được sử dụng. Vui lòng đăng nhập hoặc dùng email khác.", "error")
             return render_template("auth/register.html", form=form)
@@ -121,7 +124,7 @@ def register():
         # Create new user
         new_user = User(
             full_name=form.full_name.data.strip(),
-            email=form.email.data.strip().lower(),
+            email=clean_email,
         )
         new_user.set_password(form.password.data)
         db.session.add(new_user)
@@ -141,20 +144,27 @@ def register():
             primary_workspace = Workspace(name="CloudTask Team 8")
             db.session.add(primary_workspace)
             db.session.flush()
-            membership = WorkspaceMember(workspace_id=primary_workspace.id, user_id=new_user.id, role="admin")
+            membership = WorkspaceMember(
+                workspace_id=primary_workspace.id, user_id=new_user.id, role="admin"
+            )
             db.session.add(membership)
             db.session.commit()
             flash("Đăng ký thành công! Bạn là quản trị viên của workspace chung.", "success")
         else:
             # Workspace exists: require valid GROUP_INVITE_CODE to join shared workspace
-            if input_invite == expected_invite or not input_invite:
-                membership = WorkspaceMember(workspace_id=primary_workspace.id, user_id=new_user.id, role="member")
+            if input_invite and input_invite == expected_invite:
+                membership = WorkspaceMember(
+                    workspace_id=primary_workspace.id, user_id=new_user.id, role="member"
+                )
                 db.session.add(membership)
                 db.session.commit()
                 flash("Đăng ký thành công và đã tham gia workspace chung!", "success")
             else:
                 db.session.commit()
-                flash("Đăng ký tài khoản thành công nhưng mã mời chưa đúng để vào nhóm chung.", "warning")
+                flash(
+                    "Đăng ký tài khoản thành công nhưng mã mời chưa đúng để vào nhóm chung.",
+                    "warning",
+                )
 
         return redirect(url_for("main.dashboard"))
 
@@ -208,7 +218,12 @@ def workspace_info():
         .all()
     )
     form = JoinWorkspaceForm()
-    return render_template("workspace.html", workspace=g.current_workspace, members=members, form=form)
+    return render_template(
+        "workspace.html",
+        workspace=g.current_workspace,
+        members=members,
+        form=form,
+    )
 
 
 @bp.route("/workspace/join", methods=["POST"])
@@ -230,7 +245,11 @@ def join_workspace():
                 .first()
             )
             if not existing_member:
-                db.session.add(WorkspaceMember(workspace_id=primary_ws.id, user_id=g.current_user.id, role="member"))
+                db.session.add(
+                    WorkspaceMember(
+                        workspace_id=primary_ws.id, user_id=g.current_user.id, role="member"
+                    )
+                )
                 db.session.commit()
                 flash("Tham gia workspace thành công!", "success")
             else:
@@ -251,7 +270,9 @@ def dashboard():
         return redirect(url_for("main.workspace_info"))
 
     ws_id = g.current_workspace.id
-    total_count = db.session.scalar(select(func.count(Task.id)).where(Task.workspace_id == ws_id)) or 0
+    total_count = (
+        db.session.scalar(select(func.count(Task.id)).where(Task.workspace_id == ws_id)) or 0
+    )
     pending_count = (
         db.session.scalar(
             select(func.count(Task.id)).where(Task.workspace_id == ws_id, Task.status == "pending")
@@ -260,13 +281,17 @@ def dashboard():
     )
     in_progress_count = (
         db.session.scalar(
-            select(func.count(Task.id)).where(Task.workspace_id == ws_id, Task.status == "in_progress")
+            select(func.count(Task.id)).where(
+                Task.workspace_id == ws_id, Task.status == "in_progress"
+            )
         )
         or 0
     )
     completed_count = (
         db.session.scalar(
-            select(func.count(Task.id)).where(Task.workspace_id == ws_id, Task.status == "completed")
+            select(func.count(Task.id)).where(
+                Task.workspace_id == ws_id, Task.status == "completed"
+            )
         )
         or 0
     )

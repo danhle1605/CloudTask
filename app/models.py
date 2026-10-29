@@ -1,8 +1,10 @@
 # app/models.py
 from datetime import date, datetime, timezone
+
 from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
+
 from app.extensions import db
 
 STATUS_LABELS = {
@@ -31,7 +33,9 @@ class User(db.Model):
         default=lambda: datetime.now(timezone.utc),
     )
 
-    workspace_memberships = relationship("WorkspaceMember", back_populates="user", cascade="all, delete-orphan")
+    workspace_memberships = relationship(
+        "WorkspaceMember", back_populates="user", cascade="all, delete-orphan"
+    )
     tasks = relationship("Task", back_populates="creator")
 
     def set_password(self, password: str) -> None:
@@ -55,7 +59,9 @@ class Workspace(db.Model):
         default=lambda: datetime.now(timezone.utc),
     )
 
-    members = relationship("WorkspaceMember", back_populates="workspace", cascade="all, delete-orphan")
+    members = relationship(
+        "WorkspaceMember", back_populates="workspace", cascade="all, delete-orphan"
+    )
     tasks = relationship("Task", back_populates="workspace", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
@@ -66,8 +72,12 @@ class WorkspaceMember(db.Model):
     __tablename__ = "workspace_members"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    workspace_id: Mapped[int] = mapped_column(Integer, ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    workspace_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     role: Mapped[str] = mapped_column(String(20), nullable=False, default="member")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -90,8 +100,12 @@ class Task(db.Model):
     __tablename__ = "tasks"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    workspace_id: Mapped[int] = mapped_column(Integer, ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False)
-    created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    workspace_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False
+    )
+    created_by: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
     title: Mapped[str] = mapped_column(String(150), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(
