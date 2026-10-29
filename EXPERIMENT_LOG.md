@@ -18,9 +18,9 @@
 | **Thời gian cấu hình (phút)** | [Đo thực tế] phút | [Đo thực tế] phút | Công sức thiết lập môi trường |
 | **Thời gian deploy lần đầu (giây)** | [Đo thực tế] s | [Đo thực tế] s | Từ git push / build đến khi healthcheck 200 |
 | **Thời gian deploy bản update (giây)** | [Đo thực tế] s | [Đo thực tế] s | Thời gian cập nhật phiên bản mới |
-| **k6 - p95 Latency (/health/ready)** | [Đo từ kết quả k6] ms | [Đo từ kết quả k6] ms | Lệnh: `k6 run -e TARGET_URL=...` |
-| **k6 - p95 Latency (Overall)** | [Đo từ kết quả k6] ms | [Đo từ kết quả k6] ms | Metric: `custom_req_duration` (p95) |
-| **k6 - Error Rate (%)** | [Đo từ kết quả k6] % | [Đo từ kết quả k6] % | Metric: `custom_error_rate` |
+| **k6 - p95 Latency (/health/ready)** | 106.77 ms (Overall p95) | [Đo từ kết quả k6] ms | Lệnh: `k6 run -e TARGET_URL=...` |
+| **k6 - p95 Latency (Overall)** | 106.77 ms (Avg: 91.95 ms) | [Đo từ kết quả k6] ms | Metric: `custom_req_duration` (p95) |
+| **k6 - Error Rate (%)** | 0.00% (0 / 3,168 requests) | [Đo từ kết quả k6] % | Metric: `custom_error_rate` |
 | **Thời gian phát hiện lỗi (s)** | [Đo thực tế] s | [Đo thực tế] s | Giả lập lỗi qua health check |
 | **Thời gian thực hiện rollback (s)** | [Đo thực tế] s | [Đo thực tế] s | Từ lúc bấm rollback/chuyển tag tới khi phục hồi |
 | **Thời gian phục hồi dịch vụ (s)** | [Đo thực tế] s | [Đo thực tế] s | Health check quay lại trạng thái 200 OK |
