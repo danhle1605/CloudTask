@@ -1,0 +1,53 @@
+x-cloudtask-app: &cloudtask-app
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: cloudtask-scale-app:demo
+  restart: unless-stopped
+  expose:
+    - "5000"
+  environment:
+    FLASK_ENV: ${FLASK_ENV:-production}
+    SECRET_KEY: ${SECRET_KEY:?SECRET_KEY missing in .env}
+    APP_VERSION: ${APP_VERSION:-v1.0.0}
+    GROUP_INVITE_CODE: ${GROUP_INVITE_CODE:-CLOUDTASK-GROUP-8}
+    SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+    DATABASE_URL: ${DATABASE_URL:?DATABASE_URL missing in .env}
+  command:
+    - gunicorn
+    - --bind
+    - 0.0.0.0:5000
+    - --workers
+    - "1"
+    - --threads
+    - "2"
+    - --access-logfile
+    - "-"
+    - --error-logfile
+    - "-"
+    - wsgi:app
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:5000/health/ready"]
+    interval: 15s
+    timeout: 5s
+    retries: 3
+    start_period: 15s
+
+services:
+  web1:
+    <<: *cloudtask-app
+
+  web2:
+    <<: *cloudtask-app
+
+  lb:
+    image: haproxy:3.0-alpine
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+      - "127.0.0.1:8404:8404"
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      web1:
+        condition: service_healthy
