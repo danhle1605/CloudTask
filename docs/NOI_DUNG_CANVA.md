@@ -136,7 +136,7 @@
 | **Throughput** | **26,04 req/s** | **22,42 req/s** | Render đạt thông lượng cao hơn 16,1% |
 | **Tổng Requests (2 phút)** | **3.132** | **2.718** | Render xử lý nhiều hơn 414 requests |
 
-- **Nhận xét dưới bảng:** Cả hai môi trường cùng đạt 0% lỗi. PaaS đạt độ trễ p95 thấp hơn đáng kể nhờ lợi thế định tuyến mạng nội vùng Singapore tới CSDL Neon.
+- **Nhận xét dưới bảng:** Cả hai môi trường cùng đạt 0% lỗi. PaaS đạt độ trễ p95 thấp hơn nhờ hệ thống reverse proxy tích hợp sẵn của Render và tính ổn định của đường truyền tới CSDL Neon.
 - **Ảnh minh chứng cần chèn:** Ảnh chụp màn hình kết quả chạy k6 trên terminal PowerShell.
 - **Lời thuyết trình:**
   *"Đây là bảng so sánh hiệu năng quan trọng nhất. Dưới tải 20 VUs trong 2 phút, cả hai nền tảng đều không gặp bất kỳ lỗi nào. Đáng chú ý, PaaS đạt độ trễ phân vị p95 chỉ 118,56 ms so với 419,80 ms của máy ảo Azure."*

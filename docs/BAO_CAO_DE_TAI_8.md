@@ -144,7 +144,7 @@ Pipeline CI/CD được thiết lập trong tệp `.github/workflows/ci.yml` tr�
 
 *Định nghĩa chỉ số p95:* Độ trễ phân vị thứ 95 (p95) thể hiện mốc thời gian mà 95% tổng số yêu cầu được hệ thống phản hồi nhanh hơn hoặc bằng giá trị này. Đây là chỉ số quan trọng phản ánh trải nghiệm người dùng thực tế dưới tải.
 
-*Phân tích nguyên nhân:* Cả hai môi trường cùng kết nối chung tới CSDL Neon PostgreSQL đặt tại Region Singapore. Render đạt p95 vượt trội (118,56 ms so với 419,80 ms của Azure) chủ yếu nhờ hạ tầng mạng nội vùng Singapore tối ưu và hệ thống reverse proxy Cloudflare tích hợp sẵn.
+*Phân tích nguyên nhân:* Cả hai môi trường cùng kết nối chung tới CSDL Neon PostgreSQL đặt tại Region Singapore. Render đạt p95 vượt trội (118,56 ms so với 419,80 ms của Azure) nhờ hệ thống reverse proxy tích hợp sẵn của Render và tính ổn định của tuyến kết nối mạng tới cụm Managed Database Neon.
 
 ---
 
