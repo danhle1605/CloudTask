@@ -1,6 +1,6 @@
 # CloudTask — Đồ Án Điện Toán Đám Mây (Đề Tài Số 8)
 
-**Tên đề tài chính thức**: *Phát triển ứng dụng PaaS có cơ sở dữ liệu được quản lý và đánh giá gánh nặng vận hành* — Đề tài 8, Chương 2.  
+**Tên đề tài chính thức**: *Phát triển ứng dụng PaaS có cơ sở dữ liệu được quản lý và đánh giá gánh nặng vận hành* — Đề tài 8, Chương 2.
 **Câu hỏi nghiên cứu**: *PaaS rút ngắn thời gian triển khai đến mức nào, và đổi lại nhóm phát triển mất quyền kiểm soát hoặc gặp những giới hạn gì?*
 
 ---
@@ -152,10 +152,13 @@ Chi tiết bảng so sánh các chỉ số thực nghiệm xem tại [`k6/RESULT
 | **Số bước cấu hình thủ công** | ~ 4 bước (Tạo service, gán env, chọn branch, cấu hình health check) | ~ 12 bước (SSH, apt update, cấu hình Azure NSG, cài Docker, clone git, cấu hình env, quản lý container...) | Đếm số lệnh CLI và thao tác UI thực tế. | IaaS yêu cầu kỹ năng quản trị Linux và Docker sâu hơn nhiều. |
 | **Công sức bảo trì định kỳ** | Rất thấp (Nhà cung cấp tự động vá lỗi OS, mạng, kernel, SSL renewal) | Cao (Phải tự chạy apt upgrade, vá lỗ hổng Linux, quản lý log và dọn dẹp Docker container) | Phân tích ranh giới trách nhiệm vận hành. | Gói PaaS Free tự sleep sau 15 phút không có request (cold start ~27s). |
 | **Số thành phần nhóm trực tiếp quản lý** | 1 thành phần (Mã nguồn Flask và biến môi trường) | 4 thành phần (Hệ điều hành Linux, Docker daemon, Firewall/Network cổng 5000, App Container) | Sơ đồ phân rã kiến trúc. | Trên IaaS nếu Docker daemon bị crash, nhóm phải tự restart hoặc viết systemd service. |
-| **Độ trễ p95 (p95 Latency)** | **100.17 ms** | **478.44 ms** | Lấy từ chỉ số `custom_req_duration: p(95)` của file `k6/results_paas.json` và `k6/results_iaas.json`. | Cả hai môi trường cùng kết nối Neon Singapore. PaaS đạt p95 nhanh hơn nhờ mạng nội vùng Singapore. |
-| **Tỷ lệ lỗi (Error Rate)** | **0.00%** *(0 / 3.189 requests)* | **0.00%** *(0 / 2.604 requests)* | Chỉ số `custom_error_rate` trong báo cáo k6. | Cả hai môi trường chịu tải 20 VUs xuất sắc với 0 lỗi. |
-| **Thời gian Rollback khi bản phát hành lỗi** | **18 giây** *(Deploy khôi phục)* | *Chưa đo thực tế* | Bấm nút Rollback trên Render UI so với chạy `git checkout <tag> && docker compose rebuild` trên VM. | Render hỗ trợ rollback 1-click tức thì qua commit hash. IaaS cần thao tác terminal thủ công. |
-| **Chi phí ước tính / tháng** | $0/tháng (Free Tier) hoặc $7/tháng (Starter) | ~$5.50/tháng (Azure B1s: 1 vCPU, 1GB RAM) | Bảng giá chính thức của Render & Azure Portal ngày 29/10/2026. | PaaS miễn phí cho thử nghiệm đồ án; IaaS tính phí theo giờ máy ảo chạy thực tế. |
+| **Độ trễ p95 (p95 Latency)** | **118,56 ms** | **419,80 ms** | Lấy từ chỉ số `custom_req_duration: p(95)` của file `k6/results_paas_final.json` và `k6/results_iaas.json`. | Cả hai môi trường cùng kết nối Neon Singapore. PaaS đạt p95 nhanh hơn nhờ mạng nội vùng Singapore. |
+| **Độ trễ trung bình (Average Latency)** | **96,79 ms** | **124,31 ms** | Lấy từ dữ liệu thực nghiệm k6 với 20 VUs trong 2 phút. | PaaS xử lý nhanh hơn 22,1% ở mức tải trung bình. |
+| **Tỷ lệ lỗi (Error Rate)** | **0,00%** *(0 / 3.132 requests)* | **0,00%** *(0 / 2.718 requests)* | Chỉ số `custom_error_rate` trong báo cáo k6. | Cả hai môi trường chịu tải 20 VUs xuất sắc với 0 lỗi. |
+| **Thông lượng (Throughput)** | **26,04 req/s** | **22,42 req/s** | Số request hoàn thành trên mỗi giây thực nghiệm. | Render xử lý được thông lượng cao hơn 16,1% so với Azure VM. |
+| **Thời gian Rollback khi bản phát hành lỗi** | **18 giây** *(Deploy khôi phục)* | **4,41 giây** *(Lệnh terminal)* | Bấm nút Rollback trên Render UI so với chạy `git checkout <tag> && docker compose restart` trên VM. | Render hỗ trợ rollback 1-click tức thì qua UI. IaaS cần thao tác terminal thủ công. |
+| **Thời gian Deployment mới** | ~20 giây *(tính từ Gunicorn -> Health 200)* | **15,59 giây** | Đo từ lúc chạy lệnh build/deploy đến khi `/health/ready` đạt 200 OK. | Azure đo từ lệnh Docker Compose. Render đo từ log khởi động Gunicorn. |
+| **Chi phí ước tính / tháng** | $0/tháng (Free Tier) hoặc $7/tháng (Starter) | ~$7,50 - $10,50/tháng (Azure VM B2ats_v2/B1s) + Disk + IP | Bảng giá chính thức của Render & Azure Portal. Thực tế nhóm dùng credit Azure for Students. | PaaS miễn phí cho thử nghiệm đồ án; IaaS tính phí theo giờ máy ảo chạy thực tế. |
 | **Mức độ kiểm soát & Vendor Lock-in** | Thấp: Bị giới hạn quyền root, không tùy biến kernel, không can thiệp sâu timeout. Phụ thuộc quy trình deploy của Render. | Tuyệt đối: Toàn quyền root, tự do cài đặt monitoring agent, tùy biến reverse proxy, không phụ thuộc nhà cung cấp. | Phân tích quyền hạn và runtime limitations. | Ứng dụng CloudTask viết theo chuẩn Docker & Twelve-Factor nên có thể chuyển đổi linh hoạt giữa PaaS và IaaS. |
 
 ---
